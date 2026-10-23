@@ -60,3 +60,9 @@ Blocked: E2
 Did: Commit e717e1f. `StatsStore.init` now reads counts through a private static `count(_:_:)`: `defaults.object(forKey:) as? Int` and `>= 0`, else 0. So numeric strings ("12", which `integer(forKey:)` used to parse), arrays, data, dictionaries and negatives all load as 0; a non-Date `todayStart` already loaded as nil. The sub-second case needed no code change (`Int(0.4)` truncates to 0). Tests: parameterized `corruptPersistedValuesLoadAsZeroes` (6 values, writes garbage to every `stats.*` key, then checks a new session still persists) and `subSecondSessionCountsButAddsNoTime`. 33 tests green.
 Learned: Swift Testing `@Test(arguments:)` needs Sendable values: a heterogeneous list needs `as [any Sendable]` and an `any Sendable` parameter (`as Any` fails to compile). `UserDefaults.set(_:forKey:)` takes `any Sendable` fine. A boolean stored under a count key would still bridge to 0 or 1 through `as? Int`; not treated as corrupt.
 Next: R1 once F4 and E2 are unblocked (both need the manual GUI pass described in sessions 4 and 8)
+
+## Session 10 · R1 · 2026-10-23
+Did: No code changes. At 36a1a8a `bash .loop/verify.sh` passed (swift test, 33 tests green) and `bash scripts/bundle.sh` exited 0 (release build, ad-hoc re-signed build/Brewtime.app). R1 stays false: its dependencies F4 and E2 are still false and blocked on the manual GUI pass, and that pass may change code under `Sources/Brewtime/**`, so a pass recorded now would be stale.
+Learned: The sequential driver starts an item even when its `depends_on` items are false and blocked. Once every other item is blocked, R1 is the only one left, so this Blocked line lets the driver stop instead of burning attempts.
+Next: Human: do the GUI pass from sessions 4 (F4) and 8 (E2), mark them, delete the `Blocked:` lines for F4, E2 and R1, then rerun the loop for R1 (one gate + bundle run).
+Blocked: R1
