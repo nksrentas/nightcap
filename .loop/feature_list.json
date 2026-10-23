@@ -34,7 +34,7 @@
       "description": "Duration formatting helper used by the UI: formats seconds as `0s`, `45s`, `5m 03s`, `2h 05m`, `1d 3h` for stats and timers.",
       "verify": "swift test covering 0, 59, 60, 303, 3599, 3600, 7500, 97200 seconds and negative input clamped to 0s.",
       "depends_on": [], "touches": ["Sources/BrewtimeCore/DurationFormat*.swift", "Tests/BrewtimeCoreTests/DurationFormat*.swift"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "f9907b3", "ran": "bash .loop/verify.sh (swift test: 24 tests green; DurationFormatTests: 0->0s, 59->59s, 60->1m 00s, 303->5m 03s, 3599->59m 59s, 3600->1h 00m, 7500->2h 05m, 86399->23h 59m, 86400->1d 0h, 97200->1d 3h; -1, -3600, Int.min -> 0s); swift build ok with PanelView using the helper" }
     },
     {
       "id": "F7", "category": "functional", "ui": false,
