@@ -41,7 +41,7 @@
       "description": "scripts/bundle.sh builds release and assembles build/Brewtime.app with an Info.plist (CFBundleIdentifier app.brewtime.Brewtime, LSUIElement true, LSMinimumSystemVersion 14.0), ad-hoc codesigns it, and works from a path containing spaces.",
       "verify": "bash scripts/bundle.sh exits 0; plutil -lint build/Brewtime.app/Contents/Info.plist passes; LSUIElement is true; codesign -v build/Brewtime.app passes.",
       "depends_on": [], "touches": ["scripts/bundle.sh"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "5bbabf9", "ran": "bash scripts/bundle.sh from the repo path containing spaces (\"Application Support\") exits 0, release build; plutil -lint Info.plist OK; plutil -extract LSUIElement -> true; plutil -p shows CFBundleIdentifier app.brewtime.Brewtime, LSMinimumSystemVersion 14.0; codesign -v: valid on disk, satisfies its Designated Requirement; bash .loop/verify.sh 24 tests green" }
     },
     {
       "id": "E1", "category": "edge", "ui": false,
