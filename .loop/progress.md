@@ -11,3 +11,9 @@ Baseline (init): `swift build` ok, `swift test` 1 test passing (Swift Testing). 
 ## Assumptions
 - App name: Brewtime. Minimum macOS 14 (for @Observable). caffeinate flags `-dims -w <pid>` so the display, idle and system sleep are blocked and caffeinate dies with the app.
 - No launch-at-login, no notarization: ad-hoc signed local build.
+- F1: durations are passed to `CaffeinateController.start(seconds:)` as whole seconds (`Int?`, nil = indefinitely).
+
+## Session 1 · F1 · 2026-10-23
+Did: `Sources/BrewtimeCore/CaffeinateController.swift` — `@MainActor final class CaffeinateController` (`start(seconds:)`, `stop()`, `isActive`), protocols `ProcessLaunching` / `LaunchedProcess`, `SystemProcessLauncher` (Foundation `Process`, which conforms to `LaunchedProcess` by extension). 7 tests in `CaffeinateControllerTests.swift` with a `FakeLauncher`/`FakeProcess`.
+Learned: `isActive` is just `process != nil`; nothing yet observes caffeinate exiting on its own — E1 will need a termination callback on `LaunchedProcess` (`Process.terminationHandler`, which fires off the main thread, so hop to MainActor). Swift Testing tests touching the controller need `@MainActor` on the `@Test` func. `.loop/verify.sh` prints `autoloop: verify passed` on success.
+Next: F2

@@ -6,7 +6,7 @@
       "description": "BrewtimeCore has a CaffeinateController that starts `/usr/bin/caffeinate -d -i -m -s -w <app pid>` (optionally with `-t <seconds>`) and stops it; `isActive` reflects whether the process is running. Process launching is behind a small protocol so tests use a fake.",
       "verify": "swift test: starting sets isActive true and passes the expected arguments (with and without a duration); stopping terminates the process and sets isActive false; start while active and stop while inactive are no-ops.",
       "depends_on": [], "touches": ["Sources/BrewtimeCore/Caffeinate*.swift", "Tests/BrewtimeCoreTests/Caffeinate*.swift"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "bfd830e", "ran": "bash .loop/verify.sh (swift test: 8 tests green, 7 in CaffeinateControllerTests covering args with/without -t, stop terminates, start-while-active and stop-while-inactive no-ops, failed launch, restart)" }
     },
     {
       "id": "F2", "category": "functional", "ui": false,
