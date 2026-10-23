@@ -13,7 +13,7 @@
       "description": "BrewtimeCore has a StatsStore that records completed sessions and exposes: total sessions started, total time kept awake, longest session, sessions today, and the current session start date. It persists to an injectable UserDefaults suite and can be reset.",
       "verify": "swift test: recording sessions of 60s and 120s gives count 2, total 180s, longest 120s; a new store on the same defaults suite reads the same values; reset zeroes everything; sessions today counts only sessions started since local midnight (clock injected).",
       "depends_on": [], "touches": ["Sources/BrewtimeCore/Stats*.swift", "Tests/BrewtimeCoreTests/Stats*.swift"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "1c8cb44", "ran": "bash .loop/verify.sh (swift test: 16 tests green, 8 in StatsStoreTests: 60s+120s -> count 2, total 180, longest 120; reload from same suite; reset zeroes and persists; sessions today across UTC midnight and in an injected Europe/Athens calendar; start/end no-ops)" }
     },
     {
       "id": "F3", "category": "functional", "ui": false,

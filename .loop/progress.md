@@ -12,8 +12,14 @@ Baseline (init): `swift build` ok, `swift test` 1 test passing (Swift Testing). 
 - App name: Brewtime. Minimum macOS 14 (for @Observable). caffeinate flags `-dims -w <pid>` so the display, idle and system sleep are blocked and caffeinate dies with the app.
 - No launch-at-login, no notarization: ad-hoc signed local build.
 - F1: durations are passed to `CaffeinateController.start(seconds:)` as whole seconds (`Int?`, nil = indefinitely).
+- F2: a session counts as started (and toward "today") when it starts, not when it ends. `currentSessionStart` is in memory only, never persisted, so a crash cannot leave a stale running session. Durations truncate to whole seconds.
 
 ## Session 1 · F1 · 2026-10-23
 Did: `Sources/BrewtimeCore/CaffeinateController.swift` — `@MainActor final class CaffeinateController` (`start(seconds:)`, `stop()`, `isActive`), protocols `ProcessLaunching` / `LaunchedProcess`, `SystemProcessLauncher` (Foundation `Process`, which conforms to `LaunchedProcess` by extension). 7 tests in `CaffeinateControllerTests.swift` with a `FakeLauncher`/`FakeProcess`.
 Learned: `isActive` is just `process != nil`; nothing yet observes caffeinate exiting on its own — E1 will need a termination callback on `LaunchedProcess` (`Process.terminationHandler`, which fires off the main thread, so hop to MainActor). Swift Testing tests touching the controller need `@MainActor` on the `@Test` func. `.loop/verify.sh` prints `autoloop: verify passed` on success.
 Next: F2
+
+## Session 2 · F2 · 2026-10-23
+Did: `Sources/BrewtimeCore/StatsStore.swift`, a `@MainActor final class StatsStore(defaults:now:calendar:)` with `startSession()` (count +1 right away, sets `currentSessionStart`), `endSession()` (adds the elapsed whole seconds to total and longest), `reset()`, and read-only `sessionsStarted`, `totalSeconds`, `longestSeconds`, `sessionsToday` and `currentSessionStart`. "Today" is stored as a start-of-day date plus a count, so storage stays bounded. Keys are `stats.*`. 8 tests in `StatsStoreTests.swift` (`TestClock`, a UUID defaults suite per test, a UTC calendar).
+Learned: The PreToolUse commit guard checks before the Bash command runs, so `verify.sh && git commit` in one call is always blocked after a code edit: run the gate and the commit in separate calls. `UserDefaults.integer(forKey:)` already returns 0 for missing or non-numeric values, which E3 can lean on, but a numeric string like "12" still parses as 12. F3's AppModel should call `startSession()` on toggle on and `endSession()` on toggle off, and inject the same clock into both.
+Next: F3
