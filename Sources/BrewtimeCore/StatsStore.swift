@@ -34,11 +34,18 @@ public final class StatsStore {
         self.defaults = defaults
         self.now = now
         self.calendar = calendar
-        sessionsStarted = defaults.integer(forKey: Key.sessionsStarted)
-        totalSeconds = defaults.integer(forKey: Key.totalSeconds)
-        longestSeconds = defaults.integer(forKey: Key.longestSeconds)
+        sessionsStarted = Self.count(defaults, Key.sessionsStarted)
+        totalSeconds = Self.count(defaults, Key.totalSeconds)
+        longestSeconds = Self.count(defaults, Key.longestSeconds)
         todayStart = defaults.object(forKey: Key.todayStart) as? Date
-        todayCount = defaults.integer(forKey: Key.todayCount)
+        todayCount = Self.count(defaults, Key.todayCount)
+    }
+
+    /// A persisted non-negative integer, or 0 when the value is missing, negative or of the wrong type.
+    /// Unlike `UserDefaults.integer(forKey:)`, numeric strings such as "12" count as corrupt.
+    private static func count(_ defaults: UserDefaults, _ key: String) -> Int {
+        guard let value = defaults.object(forKey: key) as? Int, value >= 0 else { return 0 }
+        return value
     }
 
     /// Counts a new session as started now. Does nothing while a session is in progress.

@@ -109,6 +109,51 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
+@Test(arguments: [
+    "garbage",
+    "12",
+    [1, 2, 3],
+    Data([0xFF, 0x00]),
+    ["sessions": 5],
+    -7,
+] as [any Sendable])
+func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
+    let defaults = freshDefaults()
+    for key in ["stats.sessionsStarted", "stats.totalSeconds", "stats.longestSeconds", "stats.todayStart", "stats.todayCount"] {
+        defaults.set(garbage, forKey: key)
+    }
+    let clock = TestClock(noon)
+
+    let store = makeStore(defaults, clock)
+
+    #expect(store.sessionsStarted == 0)
+    #expect(store.totalSeconds == 0)
+    #expect(store.longestSeconds == 0)
+    #expect(store.sessionsToday == 0)
+
+    recordSession(store, clock, seconds: 30)
+    let reloaded = makeStore(defaults, clock)
+    #expect(reloaded.sessionsStarted == 1)
+    #expect(reloaded.totalSeconds == 30)
+    #expect(reloaded.longestSeconds == 30)
+    #expect(reloaded.sessionsToday == 1)
+}
+
+@MainActor
+@Test func subSecondSessionCountsButAddsNoTime() {
+    let clock = TestClock(noon)
+    let store = makeStore(freshDefaults(), clock)
+    recordSession(store, clock, seconds: 5)
+
+    recordSession(store, clock, seconds: 0.4)
+
+    #expect(store.sessionsStarted == 2)
+    #expect(store.sessionsToday == 2)
+    #expect(store.totalSeconds == 5)
+    #expect(store.longestSeconds == 5)
+}
+
+@MainActor
 @Test func resetZeroesEverythingAndPersists() {
     let defaults = freshDefaults()
     let clock = TestClock(noon)
