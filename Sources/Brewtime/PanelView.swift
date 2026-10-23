@@ -35,8 +35,8 @@ struct PanelView: View {
             Text("Stats").font(.headline)
             LabeledContent("Sessions started", value: "\(model.stats.sessionsStarted)")
             LabeledContent("Sessions today", value: "\(model.stats.sessionsToday)")
-            LabeledContent("Total time awake", value: formatted(model.stats.totalSeconds))
-            LabeledContent("Longest session", value: formatted(model.stats.longestSeconds))
+            LabeledContent("Total time awake", value: DurationFormat.string(fromSeconds: model.stats.totalSeconds))
+            LabeledContent("Longest session", value: DurationFormat.string(fromSeconds: model.stats.longestSeconds))
 
             Divider()
 
@@ -58,10 +58,6 @@ struct PanelView: View {
         } catch {
             launchError = "Could not start caffeinate: \(error.localizedDescription)"
         }
-    }
-
-    private func formatted(_ seconds: Int) -> String {
-        Duration.seconds(seconds).formatted(.units(allowed: [.days, .hours, .minutes, .seconds], width: .narrow))
     }
 }
 
