@@ -4,6 +4,8 @@ import Testing
 
 private final class FakeProcess: LaunchedProcess {
     var terminateCount = 0
+    let exit: @MainActor () -> Void
+    init(onExit: @escaping @MainActor () -> Void) { exit = onExit }
     func terminate() { terminateCount += 1 }
 }
 
@@ -11,9 +13,13 @@ private final class FakeLauncher: ProcessLaunching {
     var launches: [(executableURL: URL, arguments: [String])] = []
     var processes: [FakeProcess] = []
 
-    func launch(executableURL: URL, arguments: [String]) throws -> any LaunchedProcess {
+    func launch(
+        executableURL: URL,
+        arguments: [String],
+        onExit: @escaping @MainActor () -> Void
+    ) throws -> any LaunchedProcess {
         launches.append((executableURL, arguments))
-        let process = FakeProcess()
+        let process = FakeProcess(onExit: onExit)
         processes.append(process)
         return process
     }
@@ -22,7 +28,11 @@ private final class FakeLauncher: ProcessLaunching {
 private struct LaunchFailure: Error {}
 
 private struct FailingLauncher: ProcessLaunching {
-    func launch(executableURL: URL, arguments: [String]) throws -> any LaunchedProcess {
+    func launch(
+        executableURL: URL,
+        arguments: [String],
+        onExit: @escaping @MainActor () -> Void
+    ) throws -> any LaunchedProcess {
         throw LaunchFailure()
     }
 }
@@ -107,4 +117,49 @@ private struct FailingLauncher: ProcessLaunching {
     #expect(controller.isActive)
     #expect(launcher.launches.count == 2)
     #expect(launcher.launches[1].arguments.suffix(2) == ["-t", "900"])
+}
+
+@MainActor
+@Test func exitOnItsOwnDeactivatesAndNotifiesOnce() throws {
+    let launcher = FakeLauncher()
+    let controller = CaffeinateController(launcher: launcher, appPID: 1)
+    var exits = 0
+    controller.onExit = { exits += 1 }
+    try controller.start(seconds: 900)
+
+    launcher.processes[0].exit()
+    launcher.processes[0].exit()
+
+    #expect(!controller.isActive)
+    #expect(exits == 1)
+}
+
+@MainActor
+@Test func exitCausedByStopDoesNotNotify() throws {
+    let launcher = FakeLauncher()
+    let controller = CaffeinateController(launcher: launcher, appPID: 1)
+    var exits = 0
+    controller.onExit = { exits += 1 }
+    try controller.start()
+    controller.stop()
+
+    launcher.processes[0].exit()
+
+    #expect(exits == 0)
+}
+
+@MainActor
+@Test func lateExitOfEarlierProcessLeavesRestartedOneActive() throws {
+    let launcher = FakeLauncher()
+    let controller = CaffeinateController(launcher: launcher, appPID: 1)
+    var exits = 0
+    controller.onExit = { exits += 1 }
+    try controller.start()
+    controller.stop()
+    try controller.start()
+
+    launcher.processes[0].exit()
+
+    #expect(controller.isActive)
+    #expect(exits == 0)
 }

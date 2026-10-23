@@ -4,6 +4,8 @@ import Testing
 
 private final class FakeProcess: LaunchedProcess {
     var terminateCount = 0
+    let exit: @MainActor () -> Void
+    init(onExit: @escaping @MainActor () -> Void) { exit = onExit }
     func terminate() { terminateCount += 1 }
 }
 
@@ -11,9 +13,13 @@ private final class FakeLauncher: ProcessLaunching {
     var arguments: [[String]] = []
     var processes: [FakeProcess] = []
 
-    func launch(executableURL: URL, arguments: [String]) throws -> any LaunchedProcess {
+    func launch(
+        executableURL: URL,
+        arguments: [String],
+        onExit: @escaping @MainActor () -> Void
+    ) throws -> any LaunchedProcess {
         self.arguments.append(arguments)
-        let process = FakeProcess()
+        let process = FakeProcess(onExit: onExit)
         processes.append(process)
         return process
     }
@@ -22,7 +28,11 @@ private final class FakeLauncher: ProcessLaunching {
 private struct LaunchFailure: Error {}
 
 private struct FailingLauncher: ProcessLaunching {
-    func launch(executableURL: URL, arguments: [String]) throws -> any LaunchedProcess {
+    func launch(
+        executableURL: URL,
+        arguments: [String],
+        onExit: @escaping @MainActor () -> Void
+    ) throws -> any LaunchedProcess {
         throw LaunchFailure()
     }
 }
@@ -88,6 +98,49 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 
 @Test func durationsMatchTheirCaffeinateTimeouts() {
     #expect(SessionDuration.allCases.map(\.seconds) == [nil, 900, 1800, 3600, 7200, 14400])
+}
+
+@MainActor
+@Test func caffeinateExitingOnItsOwnRecordsTheSessionOnce() throws {
+    let launcher = FakeLauncher()
+    let clock = TestClock()
+    let defaults = UserDefaults(suiteName: "BrewtimeTests.\(UUID().uuidString)")!
+    let caffeinate = CaffeinateController(launcher: launcher, appPID: 99)
+    let model = AppModel(caffeinate: caffeinate, stats: StatsStore(defaults: defaults, now: { clock.now }))
+    model.selectedDuration = .minutes15
+    try model.toggle()
+
+    clock.advance(900)
+    launcher.processes[0].exit()
+
+    #expect(!model.isActive)
+    #expect(model.stats.sessionsStarted == 1)
+    #expect(model.stats.totalSeconds == 900)
+    #expect(model.stats.longestSeconds == 900)
+
+    clock.advance(60)
+    caffeinate.stop()
+    launcher.processes[0].exit()
+
+    #expect(launcher.processes[0].terminateCount == 0)
+    #expect(model.stats.totalSeconds == 900)
+    #expect(model.stats.longestSeconds == 900)
+}
+
+@MainActor
+@Test func exitAfterToggleOffRecordsNothingExtra() throws {
+    let launcher = FakeLauncher()
+    let clock = TestClock()
+    let model = makeModel(launcher, clock)
+    try model.toggle()
+    clock.advance(90)
+    try model.toggle()
+
+    clock.advance(30)
+    launcher.processes[0].exit()
+
+    #expect(!model.isActive)
+    #expect(model.stats.totalSeconds == 90)
 }
 
 @MainActor

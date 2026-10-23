@@ -30,18 +30,23 @@ public final class AppModel {
     public init(caffeinate: CaffeinateController, stats: StatsStore) {
         self.caffeinate = caffeinate
         self.stats = stats
+        caffeinate.onExit = { [weak self] in self?.endSession() }
     }
 
     /// Starts caffeinate for the selected duration, or stops it and records the session.
     public func toggle() throws {
         if isActive {
             caffeinate.stop()
-            stats.endSession()
-            isActive = false
+            endSession()
         } else {
             try caffeinate.start(seconds: selectedDuration.seconds)
             stats.startSession()
             isActive = true
         }
+    }
+
+    private func endSession() {
+        stats.endSession()
+        isActive = false
     }
 }
