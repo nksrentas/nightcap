@@ -1,0 +1,16 @@
+.build/
+build/
+*.app
+.DS_Store
+.swiftpm/
+.loop/tests-passed
+.loop/usage.jsonl
+.loop/live.json
+.loop/live.json.tmp
+.loop/stop
+.loop/attempts.json
+.loop/attempts.json.tmp
+.loop/run.lock/
+.loop/port
+.stryker-tmp/
+reports/mutation/

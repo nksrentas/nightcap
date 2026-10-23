@@ -1,0 +1,12 @@
+{
+  "task": "Native macOS menu bar app (Swift/SwiftUI) named Brewtime that toggles caffeinate from a menu bar icon and shows usage stats",
+  "name": "Brewtime menu bar app",
+  "mode": "fast",
+  "new_project": true,
+  "base": "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+  "commands": { "test": "swift test", "build": "swift build", "bundle": "bash scripts/bundle.sh" },
+  "mutation_paths": ["Sources/**/*.swift"],
+  "gates": { "tests": true, "mutation": false, "browser": false },
+  "skills": { "context": ["bussin-lean"], "implement": [], "review": [], "end": [] },
+  "checkpoint": false
+}
