@@ -62,7 +62,7 @@
       "description": "Corrupt or missing persisted stats (wrong types in UserDefaults) load as zeroes instead of crashing; sessions shorter than 1 second still count as started but add 0 to total.",
       "verify": "swift test writes garbage values to the defaults suite and loads a store with zeroed stats; a 0.4s session increments count and leaves longest/total unchanged at whole-second precision.",
       "depends_on": ["F2"], "touches": ["Sources/BrewtimeCore/Stats*.swift", "Tests/BrewtimeCoreTests/Stats*.swift"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "e717e1f", "ran": "bash .loop/verify.sh (swift test, 33 tests green): corruptPersistedValuesLoadAsZeroes with 6 garbage values (\"garbage\", \"12\", [1,2,3], Data, dictionary, -7) loads zeroes then records a 30s session; subSecondSessionCountsButAddsNoTime: 0.4s session gives sessionsStarted 2, total and longest stay 5" }
     },
     {
       "id": "R1", "category": "regression", "ui": false,
