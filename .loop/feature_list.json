@@ -20,7 +20,7 @@
       "description": "An @Observable @MainActor AppModel in BrewtimeCore wires CaffeinateController and StatsStore: toggle() starts or stops caffeinate; starting increments the sessions-started count immediately; stopping records the elapsed session duration in stats. Exposes the selected duration (Indefinitely, 15 min, 30 min, 1 h, 2 h, 4 h).",
       "verify": "swift test with fake process launcher and injected clock: toggle on -> active and sessions count +1; advance clock 90s, toggle off -> inactive, total awake +90s; selecting 1 h passes -t 3600 on next start.",
       "depends_on": ["F1", "F2"], "touches": ["Sources/BrewtimeCore/AppModel.swift", "Tests/BrewtimeCoreTests/AppModel*.swift"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "f00eaa5", "ran": "bash .loop/verify.sh (swift test: 21 tests green, 5 in AppModelTests with fake launcher + injected clock: toggle on -> active, sessionsStarted 1, args without -t; +90s toggle off -> inactive, process terminated, total 90; selecting .hour1 -> next start passes -t 3600; durations map to nil/900/1800/3600/7200/14400; failed launch leaves model inactive with 0 sessions)" }
     },
     {
       "id": "F4", "category": "functional", "ui": true,
