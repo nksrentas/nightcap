@@ -48,7 +48,7 @@
       "description": "When caffeinate exits on its own (duration elapsed, or killed externally), the model flips to inactive and records the session exactly once.",
       "verify": "swift test: fake process fires its termination handler -> isActive false, one session recorded with the elapsed time; a subsequent stop() records nothing extra.",
       "depends_on": ["F3"], "touches": ["Sources/BrewtimeCore/**", "Tests/BrewtimeCoreTests/**"],
-      "passes": false, "evidence": null
+      "passes": true, "evidence": { "commit": "9f1fe12", "ran": "bash .loop/verify.sh (swift test: 29 tests green; AppModelTests caffeinateExitingOnItsOwnRecordsTheSessionOnce: 15 min session, +900s fake exit -> inactive, sessionsStarted 1, total 900, longest 900; then +60s caffeinate.stop() and a second exit -> no terminate, total/longest still 900; exitAfterToggleOffRecordsNothingExtra: toggle off at 90s then late exit -> total 90; CaffeinateControllerTests: exit notifies once, exit caused by stop() does not notify, late exit of an earlier process leaves the restarted one active); swift build ok" }
     },
     {
       "id": "E2", "category": "edge", "ui": false,
