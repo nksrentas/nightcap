@@ -45,6 +45,13 @@ public final class AppModel {
         }
     }
 
+    /// Stops caffeinate and records the in-progress session; call when the app terminates.
+    public func shutdown() {
+        guard isActive else { return }
+        caffeinate.stop()
+        endSession()
+    }
+
     private func endSession() {
         stats.endSession()
         isActive = false

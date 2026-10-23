@@ -1,14 +1,26 @@
+import AppKit
 import BrewtimeCore
 import SwiftUI
 
 @main
 struct BrewtimeApp: App {
-    @State private var model = AppModel(caffeinate: CaffeinateController(), stats: StatsStore(defaults: .standard))
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     var body: some Scene {
+        let model = appDelegate.model
         MenuBarExtra("Brewtime", systemImage: model.isActive ? "cup.and.heat.waves.fill" : "cup.and.saucer") {
             PanelView(model: model)
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+/// Owns the model so quitting can record the running session before caffeinate is lost.
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    let model = AppModel(caffeinate: CaffeinateController(), stats: StatsStore(defaults: .standard))
+
+    func applicationWillTerminate(_ notification: Notification) {
+        model.shutdown()
     }
 }

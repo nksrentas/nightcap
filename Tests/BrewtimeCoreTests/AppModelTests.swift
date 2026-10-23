@@ -144,6 +144,40 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
+@Test func shutdownWhileActiveStopsCaffeinateAndRecordsTheSession() throws {
+    let launcher = FakeLauncher()
+    let clock = TestClock()
+    let model = makeModel(launcher, clock)
+    try model.toggle()
+
+    clock.advance(45)
+    model.shutdown()
+    launcher.processes[0].exit()
+
+    #expect(!model.isActive)
+    #expect(launcher.processes[0].terminateCount == 1)
+    #expect(model.stats.sessionsStarted == 1)
+    #expect(model.stats.totalSeconds == 45)
+    #expect(model.stats.longestSeconds == 45)
+}
+
+@MainActor
+@Test func shutdownWhileInactiveDoesNothing() throws {
+    let launcher = FakeLauncher()
+    let clock = TestClock()
+    let model = makeModel(launcher, clock)
+    try model.toggle()
+    clock.advance(90)
+    try model.toggle()
+
+    clock.advance(30)
+    model.shutdown()
+
+    #expect(launcher.processes[0].terminateCount == 1)
+    #expect(model.stats.totalSeconds == 90)
+}
+
+@MainActor
 @Test func failedStartLeavesModelInactiveAndCountsNothing() {
     let model = makeModel(FailingLauncher(), TestClock())
 
