@@ -1,6 +1,8 @@
 import Foundation
+import Observation
 
 /// Usage stats for caffeinate sessions, persisted in a UserDefaults suite at whole-second precision.
+@Observable
 @MainActor
 public final class StatsStore {
     private enum Key {

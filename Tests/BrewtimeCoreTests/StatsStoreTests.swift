@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Testing
 @testable import BrewtimeCore
 
@@ -125,6 +126,23 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
         #expect(stats.sessionsToday == 0)
         #expect(stats.currentSessionStart == nil)
     }
+}
+
+@MainActor
+@Test func resetNotifiesObserversOfTheStats() {
+    let clock = TestClock(noon)
+    let store = makeStore(freshDefaults(), clock)
+    recordSession(store, clock, seconds: 60)
+    let changed = OSAllocatedUnfairLock(initialState: false)
+    withObservationTracking {
+        _ = store.totalSeconds
+    } onChange: {
+        changed.withLock { $0 = true }
+    }
+
+    store.reset()
+
+    #expect(changed.withLock { $0 })
 }
 
 @MainActor
