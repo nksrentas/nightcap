@@ -92,3 +92,7 @@ Each test gets its own throwaway `UserDefaults` suite in the temp folder through
 ### How it was built
 
 Nightcap was built with an autonomous agent loop. `.loop/feature_list.json` lists each requirement along with the evidence that it passes, and `.loop/progress.md` logs every session.
+
+## License
+
+[MIT](LICENSE) © 2026 Nick Rentas
