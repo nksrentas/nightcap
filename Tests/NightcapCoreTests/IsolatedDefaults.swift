@@ -8,7 +8,7 @@ struct IsolatedDefaults: TestTrait, TestScoping {
     @TaskLocal static var suiteName: String?
 
     func provideScope(for test: Test, testCase: Test.Case?, performing function: () async throws -> Void) async throws {
-        let name = FileManager.default.temporaryDirectory.appendingPathComponent("BrewtimeTests.\(UUID().uuidString)").path
+        let name = FileManager.default.temporaryDirectory.appendingPathComponent("NightcapTests.\(UUID().uuidString)").path
         defer {
             let defaults = UserDefaults(suiteName: name)!
             defaults.removePersistentDomain(forName: name)

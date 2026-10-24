@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "Brewtime",
+    name: "Nightcap",
     platforms: [.macOS(.v14)],
     targets: [
-        .target(name: "BrewtimeCore"),
-        .executableTarget(name: "Brewtime", dependencies: ["BrewtimeCore"]),
-        .testTarget(name: "BrewtimeCoreTests", dependencies: ["BrewtimeCore"]),
+        .target(name: "NightcapCore"),
+        .executableTarget(name: "Nightcap", dependencies: ["NightcapCore"]),
+        .testTarget(name: "NightcapCoreTests", dependencies: ["NightcapCore"]),
     ]
 )

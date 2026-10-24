@@ -1,4 +1,4 @@
-import BrewtimeCore
+import NightcapCore
 import SwiftUI
 
 /// Rendered as a native NSMenu by `.menuBarExtraStyle(.menu)`: toggles become checkmark items,
@@ -32,7 +32,7 @@ struct MenuContent: View {
         Divider()
 
         Button("Reset Statistics") { model.stats.reset() }
-        Button("Quit Brewtime") { NSApplication.shared.terminate(nil) }
+        Button("Quit Nightcap") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
     }
 

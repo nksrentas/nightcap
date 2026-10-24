@@ -1,5 +1,5 @@
 import Testing
-import BrewtimeCore
+import NightcapCore
 
 @Test(arguments: [
     (0, "0s"),

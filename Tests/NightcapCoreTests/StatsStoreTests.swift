@@ -1,7 +1,7 @@
 import Foundation
 import os
 import Testing
-@testable import BrewtimeCore
+@testable import NightcapCore
 
 private final class TestClock {
     var now: Date

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BrewtimeCore
+@testable import NightcapCore
 
 private final class FakeProcess: LaunchedProcess {
     var terminateCount = 0

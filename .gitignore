@@ -14,3 +14,4 @@ build/
 .loop/port
 .stryker-tmp/
 reports/mutation/
+.claude/settings.local.json

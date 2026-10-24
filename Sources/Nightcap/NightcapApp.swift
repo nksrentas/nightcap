@@ -1,14 +1,14 @@
 import AppKit
-import BrewtimeCore
+import NightcapCore
 import SwiftUI
 
 @main
-struct BrewtimeApp: App {
+struct NightcapApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     var body: some Scene {
         let model = appDelegate.model
-        MenuBarExtra("Brewtime", systemImage: model.isActive ? "cup.and.heat.waves.fill" : "cup.and.saucer") {
+        MenuBarExtra("Nightcap", systemImage: model.isActive ? "cup.and.heat.waves.fill" : "cup.and.saucer") {
             MenuContent(model: model)
         }
         .menuBarExtraStyle(.menu)
