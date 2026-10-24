@@ -9,9 +9,9 @@ struct BrewtimeApp: App {
     var body: some Scene {
         let model = appDelegate.model
         MenuBarExtra("Brewtime", systemImage: model.isActive ? "cup.and.heat.waves.fill" : "cup.and.saucer") {
-            PanelView(model: model)
+            MenuContent(model: model)
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
     }
 }
 
