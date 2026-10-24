@@ -9,10 +9,6 @@ private final class TestClock {
     func advance(_ seconds: TimeInterval) { now += seconds }
 }
 
-private func freshDefaults() -> UserDefaults {
-    UserDefaults(suiteName: "BrewtimeTests.\(UUID().uuidString)")!
-}
-
 private var utcCalendar: Calendar {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(identifier: "UTC")!
@@ -35,7 +31,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test func newStoreIsZeroed() {
+@Test(.isolatedDefaults) func newStoreIsZeroed() {
     let store = makeStore(freshDefaults(), TestClock(noon))
 
     #expect(store.sessionsStarted == 0)
@@ -46,7 +42,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test func recordsCountTotalAndLongest() {
+@Test(.isolatedDefaults) func recordsCountTotalAndLongest() {
     let clock = TestClock(noon)
     let store = makeStore(freshDefaults(), clock)
 
@@ -59,7 +55,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test func startCountsImmediatelyAndTracksCurrentStart() {
+@Test(.isolatedDefaults) func startCountsImmediatelyAndTracksCurrentStart() {
     let clock = TestClock(noon)
     let store = makeStore(freshDefaults(), clock)
 
@@ -76,7 +72,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test func startWhileInProgressAndEndWithoutSessionAreNoOps() {
+@Test(.isolatedDefaults) func startWhileInProgressAndEndWithoutSessionAreNoOps() {
     let clock = TestClock(noon)
     let store = makeStore(freshDefaults(), clock)
 
@@ -93,7 +89,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test func newStoreOnSameSuiteReadsPersistedValues() {
+@Test(.isolatedDefaults) func newStoreOnSameSuiteReadsPersistedValues() {
     let defaults = freshDefaults()
     let clock = TestClock(noon)
     let store = makeStore(defaults, clock)
@@ -109,7 +105,7 @@ private func recordSession(_ store: StatsStore, _ clock: TestClock, seconds: Tim
 }
 
 @MainActor
-@Test(arguments: [
+@Test(.isolatedDefaults, arguments: [
     "garbage",
     "12",
     [1, 2, 3],
@@ -140,7 +136,7 @@ func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
 }
 
 @MainActor
-@Test func subSecondSessionCountsButAddsNoTime() {
+@Test(.isolatedDefaults) func subSecondSessionCountsButAddsNoTime() {
     let clock = TestClock(noon)
     let store = makeStore(freshDefaults(), clock)
     recordSession(store, clock, seconds: 5)
@@ -154,7 +150,7 @@ func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
 }
 
 @MainActor
-@Test func resetZeroesEverythingAndPersists() {
+@Test(.isolatedDefaults) func resetZeroesEverythingAndPersists() {
     let defaults = freshDefaults()
     let clock = TestClock(noon)
     let store = makeStore(defaults, clock)
@@ -174,7 +170,7 @@ func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
 }
 
 @MainActor
-@Test func resetNotifiesObserversOfTheStats() {
+@Test(.isolatedDefaults) func resetNotifiesObserversOfTheStats() {
     let clock = TestClock(noon)
     let store = makeStore(freshDefaults(), clock)
     recordSession(store, clock, seconds: 60)
@@ -191,7 +187,7 @@ func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
 }
 
 @MainActor
-@Test func sessionsTodayCountsOnlySinceLocalMidnight() {
+@Test(.isolatedDefaults) func sessionsTodayCountsOnlySinceLocalMidnight() {
     // 2026-10-22 23:59:00 UTC, one minute before midnight.
     let clock = TestClock(noon - 12 * 3600 - 60)
     let store = makeStore(freshDefaults(), clock)
@@ -212,7 +208,7 @@ func corruptPersistedValuesLoadAsZeroes(garbage: any Sendable) {
 }
 
 @MainActor
-@Test func midnightFollowsTheInjectedTimeZone() {
+@Test(.isolatedDefaults) func midnightFollowsTheInjectedTimeZone() {
     var athens = Calendar(identifier: .gregorian)
     athens.timeZone = TimeZone(identifier: "Europe/Athens")!
     // 2026-10-22 22:30 UTC is 01:30 on 2026-10-23 in Athens (UTC+3).

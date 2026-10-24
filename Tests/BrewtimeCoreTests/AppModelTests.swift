@@ -44,7 +44,7 @@ private final class TestClock {
 
 @MainActor
 private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> AppModel {
-    let defaults = UserDefaults(suiteName: "BrewtimeTests.\(UUID().uuidString)")!
+    let defaults = freshDefaults()
     return AppModel(
         caffeinate: CaffeinateController(launcher: launcher, appPID: 99),
         stats: StatsStore(defaults: defaults, now: { clock.now })
@@ -52,7 +52,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func toggleOnStartsCaffeinateAndCountsSession() throws {
+@Test(.isolatedDefaults) func toggleOnStartsCaffeinateAndCountsSession() throws {
     let launcher = FakeLauncher()
     let model = makeModel(launcher, TestClock())
 
@@ -65,7 +65,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func toggleOffStopsCaffeinateAndRecordsElapsedTime() throws {
+@Test(.isolatedDefaults) func toggleOffStopsCaffeinateAndRecordsElapsedTime() throws {
     let launcher = FakeLauncher()
     let clock = TestClock()
     let model = makeModel(launcher, clock)
@@ -82,7 +82,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func selectedDurationAppliesOnNextStart() throws {
+@Test(.isolatedDefaults) func selectedDurationAppliesOnNextStart() throws {
     let launcher = FakeLauncher()
     let model = makeModel(launcher, TestClock())
     try model.toggle()
@@ -101,10 +101,10 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func caffeinateExitingOnItsOwnRecordsTheSessionOnce() throws {
+@Test(.isolatedDefaults) func caffeinateExitingOnItsOwnRecordsTheSessionOnce() throws {
     let launcher = FakeLauncher()
     let clock = TestClock()
-    let defaults = UserDefaults(suiteName: "BrewtimeTests.\(UUID().uuidString)")!
+    let defaults = freshDefaults()
     let caffeinate = CaffeinateController(launcher: launcher, appPID: 99)
     let model = AppModel(caffeinate: caffeinate, stats: StatsStore(defaults: defaults, now: { clock.now }))
     model.selectedDuration = .minutes15
@@ -128,7 +128,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func exitAfterToggleOffRecordsNothingExtra() throws {
+@Test(.isolatedDefaults) func exitAfterToggleOffRecordsNothingExtra() throws {
     let launcher = FakeLauncher()
     let clock = TestClock()
     let model = makeModel(launcher, clock)
@@ -144,7 +144,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func shutdownWhileActiveStopsCaffeinateAndRecordsTheSession() throws {
+@Test(.isolatedDefaults) func shutdownWhileActiveStopsCaffeinateAndRecordsTheSession() throws {
     let launcher = FakeLauncher()
     let clock = TestClock()
     let model = makeModel(launcher, clock)
@@ -162,7 +162,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func shutdownWhileInactiveDoesNothing() throws {
+@Test(.isolatedDefaults) func shutdownWhileInactiveDoesNothing() throws {
     let launcher = FakeLauncher()
     let clock = TestClock()
     let model = makeModel(launcher, clock)
@@ -178,7 +178,7 @@ private func makeModel(_ launcher: any ProcessLaunching, _ clock: TestClock) -> 
 }
 
 @MainActor
-@Test func failedStartLeavesModelInactiveAndCountsNothing() {
+@Test(.isolatedDefaults) func failedStartLeavesModelInactiveAndCountsNothing() {
     let model = makeModel(FailingLauncher(), TestClock())
 
     #expect(throws: LaunchFailure.self) { try model.toggle() }
