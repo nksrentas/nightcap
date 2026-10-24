@@ -2,74 +2,190 @@
   "task": "Brewtime: macOS menu bar app that toggles caffeinate and shows stats",
   "features": [
     {
-      "id": "F1", "category": "functional", "ui": false,
+      "id": "F1",
+      "category": "functional",
+      "ui": false,
       "description": "BrewtimeCore has a CaffeinateController that starts `/usr/bin/caffeinate -d -i -m -s -w <app pid>` (optionally with `-t <seconds>`) and stops it; `isActive` reflects whether the process is running. Process launching is behind a small protocol so tests use a fake.",
       "verify": "swift test: starting sets isActive true and passes the expected arguments (with and without a duration); stopping terminates the process and sets isActive false; start while active and stop while inactive are no-ops.",
-      "depends_on": [], "touches": ["Sources/BrewtimeCore/Caffeinate*.swift", "Tests/BrewtimeCoreTests/Caffeinate*.swift"],
-      "passes": true, "evidence": { "commit": "bfd830e", "ran": "bash .loop/verify.sh (swift test: 8 tests green, 7 in CaffeinateControllerTests covering args with/without -t, stop terminates, start-while-active and stop-while-inactive no-ops, failed launch, restart)" }
+      "depends_on": [],
+      "touches": [
+        "Sources/BrewtimeCore/Caffeinate*.swift",
+        "Tests/BrewtimeCoreTests/Caffeinate*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "bfd830e",
+        "ran": "bash .loop/verify.sh (swift test: 8 tests green, 7 in CaffeinateControllerTests covering args with/without -t, stop terminates, start-while-active and stop-while-inactive no-ops, failed launch, restart)"
+      }
     },
     {
-      "id": "F2", "category": "functional", "ui": false,
+      "id": "F2",
+      "category": "functional",
+      "ui": false,
       "description": "BrewtimeCore has a StatsStore that records completed sessions and exposes: total sessions started, total time kept awake, longest session, sessions today, and the current session start date. It persists to an injectable UserDefaults suite and can be reset.",
       "verify": "swift test: recording sessions of 60s and 120s gives count 2, total 180s, longest 120s; a new store on the same defaults suite reads the same values; reset zeroes everything; sessions today counts only sessions started since local midnight (clock injected).",
-      "depends_on": [], "touches": ["Sources/BrewtimeCore/Stats*.swift", "Tests/BrewtimeCoreTests/Stats*.swift"],
-      "passes": true, "evidence": { "commit": "1c8cb44", "ran": "bash .loop/verify.sh (swift test: 16 tests green, 8 in StatsStoreTests: 60s+120s -> count 2, total 180, longest 120; reload from same suite; reset zeroes and persists; sessions today across UTC midnight and in an injected Europe/Athens calendar; start/end no-ops)" }
+      "depends_on": [],
+      "touches": [
+        "Sources/BrewtimeCore/Stats*.swift",
+        "Tests/BrewtimeCoreTests/Stats*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "1c8cb44",
+        "ran": "bash .loop/verify.sh (swift test: 16 tests green, 8 in StatsStoreTests: 60s+120s -> count 2, total 180, longest 120; reload from same suite; reset zeroes and persists; sessions today across UTC midnight and in an injected Europe/Athens calendar; start/end no-ops)"
+      }
     },
     {
-      "id": "F3", "category": "functional", "ui": false,
+      "id": "F3",
+      "category": "functional",
+      "ui": false,
       "description": "An @Observable @MainActor AppModel in BrewtimeCore wires CaffeinateController and StatsStore: toggle() starts or stops caffeinate; starting increments the sessions-started count immediately; stopping records the elapsed session duration in stats. Exposes the selected duration (Indefinitely, 15 min, 30 min, 1 h, 2 h, 4 h).",
       "verify": "swift test with fake process launcher and injected clock: toggle on -> active and sessions count +1; advance clock 90s, toggle off -> inactive, total awake +90s; selecting 1 h passes -t 3600 on next start.",
-      "depends_on": ["F1", "F2"], "touches": ["Sources/BrewtimeCore/AppModel.swift", "Tests/BrewtimeCoreTests/AppModel*.swift"],
-      "passes": true, "evidence": { "commit": "f00eaa5", "ran": "bash .loop/verify.sh (swift test: 21 tests green, 5 in AppModelTests with fake launcher + injected clock: toggle on -> active, sessionsStarted 1, args without -t; +90s toggle off -> inactive, process terminated, total 90; selecting .hour1 -> next start passes -t 3600; durations map to nil/900/1800/3600/7200/14400; failed launch leaves model inactive with 0 sessions)" }
+      "depends_on": [
+        "F1",
+        "F2"
+      ],
+      "touches": [
+        "Sources/BrewtimeCore/AppModel.swift",
+        "Tests/BrewtimeCoreTests/AppModel*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "f00eaa5",
+        "ran": "bash .loop/verify.sh (swift test: 21 tests green, 5 in AppModelTests with fake launcher + injected clock: toggle on -> active, sessionsStarted 1, args without -t; +90s toggle off -> inactive, process terminated, total 90; selecting .hour1 -> next start passes -t 3600; durations map to nil/900/1800/3600/7200/14400; failed launch leaves model inactive with 0 sessions)"
+      }
     },
     {
-      "id": "F4", "category": "functional", "ui": true,
+      "id": "F4",
+      "category": "functional",
+      "ui": true,
       "description": "Menu bar UI: MenuBarExtra (.window style) whose icon is `cup.and.saucer` when off and `cup.and.heat.waves.fill` when on. The panel shows an On/Off toggle, a duration picker, a live current-session timer while active (and remaining time when a duration is set), and a stats section (sessions started, sessions today, total time awake, longest session), plus Reset Stats and Quit buttons. App has no Dock icon.",
       "verify": "swift build succeeds; bash scripts/bundle.sh produces build/Brewtime.app; launching it shows the menu bar icon; while toggled on, `pgrep -x caffeinate` shows a process whose args include -w <Brewtime pid>; toggling off removes it. Record what was observed in evidence.",
-      "depends_on": ["F3", "F7"], "touches": ["Sources/Brewtime/**"],
-      "passes": false, "evidence": null
+      "depends_on": [
+        "F3",
+        "F7"
+      ],
+      "touches": [
+        "Sources/Brewtime/**"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "a9240ee",
+        "ran": "bash .loop/verify.sh (33 tests green); bash scripts/bundle.sh",
+        "manual": "User clicked the bundled app (native .menu MenuBarExtra): Keep Awake on/off at 09:24 recorded a 2s session with no caffeinate left; on again at 09:25:32 pgrep showed /usr/bin/caffeinate -d -i -m -s -w 42707 (Brewtime pid 42707)"
+      }
     },
     {
-      "id": "F5", "category": "functional", "ui": false,
+      "id": "F5",
+      "category": "functional",
+      "ui": false,
       "description": "Duration formatting helper used by the UI: formats seconds as `0s`, `45s`, `5m 03s`, `2h 05m`, `1d 3h` for stats and timers.",
       "verify": "swift test covering 0, 59, 60, 303, 3599, 3600, 7500, 97200 seconds and negative input clamped to 0s.",
-      "depends_on": [], "touches": ["Sources/BrewtimeCore/DurationFormat*.swift", "Tests/BrewtimeCoreTests/DurationFormat*.swift"],
-      "passes": true, "evidence": { "commit": "f9907b3", "ran": "bash .loop/verify.sh (swift test: 24 tests green; DurationFormatTests: 0->0s, 59->59s, 60->1m 00s, 303->5m 03s, 3599->59m 59s, 3600->1h 00m, 7500->2h 05m, 86399->23h 59m, 86400->1d 0h, 97200->1d 3h; -1, -3600, Int.min -> 0s); swift build ok with PanelView using the helper" }
+      "depends_on": [],
+      "touches": [
+        "Sources/BrewtimeCore/DurationFormat*.swift",
+        "Tests/BrewtimeCoreTests/DurationFormat*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "f9907b3",
+        "ran": "bash .loop/verify.sh (swift test: 24 tests green; DurationFormatTests: 0->0s, 59->59s, 60->1m 00s, 303->5m 03s, 3599->59m 59s, 3600->1h 00m, 7500->2h 05m, 86399->23h 59m, 86400->1d 0h, 97200->1d 3h; -1, -3600, Int.min -> 0s); swift build ok with PanelView using the helper"
+      }
     },
     {
-      "id": "F7", "category": "functional", "ui": false,
+      "id": "F7",
+      "category": "functional",
+      "ui": false,
       "description": "scripts/bundle.sh builds release and assembles build/Brewtime.app with an Info.plist (CFBundleIdentifier app.brewtime.Brewtime, LSUIElement true, LSMinimumSystemVersion 14.0), ad-hoc codesigns it, and works from a path containing spaces.",
       "verify": "bash scripts/bundle.sh exits 0; plutil -lint build/Brewtime.app/Contents/Info.plist passes; LSUIElement is true; codesign -v build/Brewtime.app passes.",
-      "depends_on": [], "touches": ["scripts/bundle.sh"],
-      "passes": true, "evidence": { "commit": "5bbabf9", "ran": "bash scripts/bundle.sh from the repo path containing spaces (\"Application Support\") exits 0, release build; plutil -lint Info.plist OK; plutil -extract LSUIElement -> true; plutil -p shows CFBundleIdentifier app.brewtime.Brewtime, LSMinimumSystemVersion 14.0; codesign -v: valid on disk, satisfies its Designated Requirement; bash .loop/verify.sh 24 tests green" }
+      "depends_on": [],
+      "touches": [
+        "scripts/bundle.sh"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "5bbabf9",
+        "ran": "bash scripts/bundle.sh from the repo path containing spaces (\"Application Support\") exits 0, release build; plutil -lint Info.plist OK; plutil -extract LSUIElement -> true; plutil -p shows CFBundleIdentifier app.brewtime.Brewtime, LSMinimumSystemVersion 14.0; codesign -v: valid on disk, satisfies its Designated Requirement; bash .loop/verify.sh 24 tests green"
+      }
     },
     {
-      "id": "E1", "category": "edge", "ui": false,
+      "id": "E1",
+      "category": "edge",
+      "ui": false,
       "description": "When caffeinate exits on its own (duration elapsed, or killed externally), the model flips to inactive and records the session exactly once.",
       "verify": "swift test: fake process fires its termination handler -> isActive false, one session recorded with the elapsed time; a subsequent stop() records nothing extra.",
-      "depends_on": ["F3"], "touches": ["Sources/BrewtimeCore/**", "Tests/BrewtimeCoreTests/**"],
-      "passes": true, "evidence": { "commit": "9f1fe12", "ran": "bash .loop/verify.sh (swift test: 29 tests green; AppModelTests caffeinateExitingOnItsOwnRecordsTheSessionOnce: 15 min session, +900s fake exit -> inactive, sessionsStarted 1, total 900, longest 900; then +60s caffeinate.stop() and a second exit -> no terminate, total/longest still 900; exitAfterToggleOffRecordsNothingExtra: toggle off at 90s then late exit -> total 90; CaffeinateControllerTests: exit notifies once, exit caused by stop() does not notify, late exit of an earlier process leaves the restarted one active); swift build ok" }
+      "depends_on": [
+        "F3"
+      ],
+      "touches": [
+        "Sources/BrewtimeCore/**",
+        "Tests/BrewtimeCoreTests/**"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "9f1fe12",
+        "ran": "bash .loop/verify.sh (swift test: 29 tests green; AppModelTests caffeinateExitingOnItsOwnRecordsTheSessionOnce: 15 min session, +900s fake exit -> inactive, sessionsStarted 1, total 900, longest 900; then +60s caffeinate.stop() and a second exit -> no terminate, total/longest still 900; exitAfterToggleOffRecordsNothingExtra: toggle off at 90s then late exit -> total 90; CaffeinateControllerTests: exit notifies once, exit caused by stop() does not notify, late exit of an earlier process leaves the restarted one active); swift build ok"
+      }
     },
     {
-      "id": "E2", "category": "edge", "ui": false,
+      "id": "E2",
+      "category": "edge",
+      "ui": false,
       "description": "Quitting the app while active stops caffeinate and records the in-progress session before exit (applicationWillTerminate / willTerminate notification), so stats are not lost and no caffeinate is orphaned.",
       "verify": "swift test on the model's shutdown() path records the session and terminates the process; manual: bundled app toggled on then quit leaves no caffeinate with its pid.",
-      "depends_on": ["F3"], "touches": ["Sources/BrewtimeCore/AppModel.swift", "Sources/Brewtime/**", "Tests/BrewtimeCoreTests/AppModel*.swift"],
-      "passes": false, "evidence": null
+      "depends_on": [
+        "F3"
+      ],
+      "touches": [
+        "Sources/BrewtimeCore/AppModel.swift",
+        "Sources/Brewtime/**",
+        "Tests/BrewtimeCoreTests/AppModel*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "c0217c3",
+        "ran": "swift test shutdown tests (33 green at a9240ee)",
+        "manual": "Quit Brewtime while active at 09:25:34: pid 42707 gone, no caffeinate -w 42707 left; stats went from 1 session/2s to 2 sessions/4s, so the in-progress session was recorded on quit"
+      }
     },
     {
-      "id": "E3", "category": "edge", "ui": false,
+      "id": "E3",
+      "category": "edge",
+      "ui": false,
       "description": "Corrupt or missing persisted stats (wrong types in UserDefaults) load as zeroes instead of crashing; sessions shorter than 1 second still count as started but add 0 to total.",
       "verify": "swift test writes garbage values to the defaults suite and loads a store with zeroed stats; a 0.4s session increments count and leaves longest/total unchanged at whole-second precision.",
-      "depends_on": ["F2"], "touches": ["Sources/BrewtimeCore/Stats*.swift", "Tests/BrewtimeCoreTests/Stats*.swift"],
-      "passes": true, "evidence": { "commit": "e717e1f", "ran": "bash .loop/verify.sh (swift test, 33 tests green): corruptPersistedValuesLoadAsZeroes with 6 garbage values (\"garbage\", \"12\", [1,2,3], Data, dictionary, -7) loads zeroes then records a 30s session; subSecondSessionCountsButAddsNoTime: 0.4s session gives sessionsStarted 2, total and longest stay 5" }
+      "depends_on": [
+        "F2"
+      ],
+      "touches": [
+        "Sources/BrewtimeCore/Stats*.swift",
+        "Tests/BrewtimeCoreTests/Stats*.swift"
+      ],
+      "passes": true,
+      "evidence": {
+        "commit": "e717e1f",
+        "ran": "bash .loop/verify.sh (swift test, 33 tests green): corruptPersistedValuesLoadAsZeroes with 6 garbage values (\"garbage\", \"12\", [1,2,3], Data, dictionary, -7) loads zeroes then records a 30s session; subSecondSessionCountsButAddsNoTime: 0.4s session gives sessionsStarted 2, total and longest stay 5"
+      }
     },
     {
-      "id": "R1", "category": "regression", "ui": false,
+      "id": "R1",
+      "category": "regression",
+      "ui": false,
       "description": "Whole suite stays green and the release bundle builds.",
       "verify": "swift test green; bash scripts/bundle.sh exits 0.",
-      "depends_on": ["F4", "E1", "E2", "E3", "F5"], "touches": [],
-      "passes": false, "evidence": null
+      "depends_on": [
+        "F4",
+        "E1",
+        "E2",
+        "E3",
+        "F5"
+      ],
+      "touches": [],
+      "passes": true,
+      "evidence": {
+        "commit": "a9240ee",
+        "ran": "bash .loop/verify.sh (swift test, 33 green); bash scripts/bundle.sh exit 0"
+      }
     }
   ]
 }
